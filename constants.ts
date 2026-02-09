@@ -1,58 +1,46 @@
-import { Purpose } from './types';
+export const FREE_DAILY_LIMIT = 5;
 
-export const TITLE_LIMIT = 50;
-export const CONTENT_LIMIT = 2000;
-export const FREE_DAILY_LIMIT = 3;
+export const GOAL_OPTIONS = [
+  { value: 'growth', label: '涨粉种草 (Growth)' },
+  { value: 'sales', label: '电商转化 (Sales)' },
+  { value: 'traffic', label: '引流私域 (Traffic)' },
+  { value: 'brand', label: '品牌曝光 (Brand)' },
+];
 
-export const PURPOSE_OPTIONS = [
-  { value: Purpose.GROWTH, label: '涨粉引流', icon: '📈', desc: '强调干货价值' },
-  { value: Purpose.CONVERSION, label: '商品转化', icon: '🛍️', desc: '突出产品效果' },
-  { value: Purpose.IP_BUILDING, label: '打造个人IP', icon: '✨', desc: '体现个人特色' },
+export const TONE_OPTIONS = [
+  { value: 'authentic', label: '真诚分享 (Authentic)' },
+  { value: 'emotional', label: '情绪共鸣 (Emotional)' },
+  { value: 'pro', label: '专业干货 (Pro)' },
+  { value: 'funny', label: '幽默搞怪 (Funny)' },
+  { value: 'minimal', label: '高冷极简 (Minimal)' },
 ];
 
 export const SYSTEM_INSTRUCTION = `
-你是小红书爆款内容专家，拥有10年内容运营经验。你的任务是分析用户提供的种草笔记文案，给出专业的优化建议。
+你是小红书爆款内容专家。你的任务是根据用户提供的产品/品牌信息、配图（可选）和营销目的，生成两篇不同策略的爆款种草笔记（Plan A 和 Plan B）。
 
-**分析要求：**
+**Plan A (策略 A)**：侧重于用户选择的"营销目的"（例如涨粉或转化），直击痛点，干货满满。
+**Plan B (策略 B)**：侧重于用户选择的"语气风格"（例如真诚或情绪），侧重故事感、氛围感或情绪价值。
 
-从以下四个维度评分（总分100）：
+**文案要求：**
+1. **标题**：必须极具吸引力，使用爆款标题公式（悬念、数字、对比、情绪）。
+2. **正文**：
+   - 包含大量 Emoji 表情，排版活泼。
+   - 分段清晰，阅读体验好。
+   - 口语化，像真人分享。
+   - 巧妙植入产品卖点。
+3. **标签**：文末生成 3-5 个精准话题标签。
 
-1. 标题吸引力（30分）：钩子、数字、emoji、字数、句式。
-2. 开篇设计（25分）：注意力、痛点、代入感、悬念。
-3. 内容结构（25分）：段落清晰、节奏感、逻辑线。
-4. 互动设计（20分）：引导评论、行动召唤、讨论空间。
-
-**针对创作目的的特殊要求：**
-- 涨粉引流：强调干货价值、引导关注
-- 商品转化：突出产品效果、降低决策门槛
-- 打造IP：体现个人特色、建立信任感
-
-**重要：文案末尾必须添加话题标签**
-在优化后的完整文案最后，独立一行添加：
----
-#小红书爆文公式 #小红书运营技巧 #AI辅助创作
-
-**输出格式（严格JSON）：**
+**输出格式（严格 JSON）：**
 {
-  "score": number,
-  "scoreBreakdown": {
-    "title": number,
-    "opening": number,
-    "structure": number,
-    "engagement": number
+  "planA": {
+    "title": "标题A",
+    "content": "正文内容A...",
+    "tags": ["#标签1", "#标签2"]
   },
-  "problems": [string],
-  "suggestions": [
-    {
-      "type": "title" | "opening" | "structure" | "engagement" | "emoji",
-      "priority": "high" | "medium" | "low",
-      "original": string (optional),
-      "optimized": [string] (optional),
-      "suggestion": string (optional),
-      "reason": string
-    }
-  ],
-  "optimizedFullText": string,
-  "hashtags": [string]
+  "planB": {
+    "title": "标题B",
+    "content": "正文内容B...",
+    "tags": ["#标签1", "#标签2"]
+  }
 }
 `;

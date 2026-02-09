@@ -1,237 +1,192 @@
 import React, { useState } from 'react';
-import { AnalysisResult } from '../types';
-import { PieChart, Pie, Cell, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
-import { ArrowLeft, Copy, Check, Sparkles, AlertCircle, RefreshCw } from 'lucide-react';
+import { GenerationResult, FormData } from '../types';
+import { ArrowLeft, Share2, Heart, Star, MessageCircle, Copy, Check, MoreHorizontal } from 'lucide-react';
 
 interface ResultDisplayProps {
-  result: AnalysisResult;
+  result: GenerationResult;
+  inputData: FormData;
   onReset: () => void;
 }
 
-const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, onReset }) => {
-  const [copiedText, setCopiedText] = useState(false);
-  const [copiedTags, setCopiedTags] = useState(false);
+const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, inputData, onReset }) => {
+  const [activePlan, setActivePlan] = useState<'planA' | 'planB'>('planA');
+  const [copiedField, setCopiedField] = useState<string | null>(null);
 
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return '#52C41A';
-    if (score >= 60) return '#FAAD14';
-    return '#FF4D4F';
+  const currentContent = result[activePlan];
+
+  const handleCopy = (text: string, field: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedField(field);
+    setTimeout(() => setCopiedField(null), 2000);
   };
 
-  const scoreData = [
-    { name: 'Score', value: result.score },
-    { name: 'Remaining', value: 100 - result.score },
-  ];
-
-  const radarData = [
-    { subject: '标题吸引力', A: result.scoreBreakdown.title, fullMark: 30 },
-    { subject: '开篇设计', A: result.scoreBreakdown.opening, fullMark: 25 },
-    { subject: '内容结构', A: result.scoreBreakdown.structure, fullMark: 25 },
-    { subject: '互动设计', A: result.scoreBreakdown.engagement, fullMark: 20 },
-  ];
-
-  const handleCopy = (text: string, setCopied: React.Dispatch<React.SetStateAction<boolean>>) => {
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const handleCopyAll = () => {
+    const fullText = `${currentContent.title}\n\n${currentContent.content}\n\n${currentContent.tags.join(' ')}`;
+    handleCopy(fullText, 'all');
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-6 pb-20 animate-fade-in">
-      <button 
-        onClick={onReset}
-        className="flex items-center text-gray-500 hover:text-brand-primary transition-colors font-medium mb-4"
-      >
-        <ArrowLeft size={18} className="mr-1" />
-        返回继续诊断
-      </button>
-
-      {/* Header Score Card */}
-      <div className="bg-white rounded-3xl p-6 shadow-lg flex flex-col md:flex-row items-center justify-between gap-8">
-        <div className="flex flex-col items-center md:items-start text-center md:text-left flex-1">
-          <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-            <Sparkles className="text-brand-primary" />
-            爆款指数
-          </h2>
-          <p className="text-gray-500 mt-2">
-            {result.score >= 80 ? '太棒了！这篇笔记很有爆款潜质！' : 
-             result.score >= 60 ? '还不错，优化一下更有机会！' : 
-             '内容还有较大提升空间，加油！'}
-          </p>
-        </div>
-        
-        {/* Score Charts */}
-        <div className="flex items-center gap-4 h-40">
-           {/* Radar Chart for breakdown */}
-           <div className="w-40 h-40">
-             <ResponsiveContainer width="100%" height="100%">
-               <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
-                 <PolarGrid stroke="#eee" />
-                 <PolarAngleAxis dataKey="subject" tick={{ fontSize: 10, fill: '#666' }} />
-                 <PolarRadiusAxis angle={30} domain={[0, 30]} tick={false} axisLine={false} />
-                 <Radar name="Score" dataKey="A" stroke="#FF2442" fill="#FF2442" fillOpacity={0.4} />
-               </RadarChart>
-             </ResponsiveContainer>
-           </div>
-
-           {/* Donut Chart for total score */}
-          <div className="w-32 h-32 relative">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={scoreData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={45}
-                  outerRadius={55}
-                  startAngle={90}
-                  endAngle={-270}
-                  dataKey="value"
-                  stroke="none"
-                >
-                  <Cell key="cell-0" fill={getScoreColor(result.score)} />
-                  <Cell key="cell-1" fill="#f3f3f3" />
-                </Pie>
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-3xl font-bold" style={{ color: getScoreColor(result.score) }}>
-                {result.score}
-              </span>
-              <span className="text-xs text-gray-400">总分</span>
-            </div>
-          </div>
+    <div className="flex flex-col items-center animate-fade-in w-full pb-10">
+      <div className="w-full max-w-4xl flex items-center justify-between mb-8 px-4">
+        <button 
+          onClick={onReset}
+          className="flex items-center text-gray-500 hover:text-brand-primary transition-colors font-medium"
+        >
+          <ArrowLeft size={20} className="mr-1" />
+          返回修改
+        </button>
+        <div className="flex bg-white rounded-full p-1 shadow-sm border border-gray-100">
+          <button
+            onClick={() => setActivePlan('planA')}
+            className={`px-6 py-2 rounded-full text-sm font-bold transition-all ${
+              activePlan === 'planA' ? 'bg-brand-primary text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'
+            }`}
+          >
+            方案 A: 核心策略
+          </button>
+          <button
+            onClick={() => setActivePlan('planB')}
+            className={`px-6 py-2 rounded-full text-sm font-bold transition-all ${
+              activePlan === 'planB' ? 'bg-brand-primary text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'
+            }`}
+          >
+            方案 B: 风格策略
+          </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Problems & Suggestions Column */}
-        <div className="lg:col-span-2 space-y-6">
-            
-            {/* Major Problems */}
-            <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
-                <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                    <AlertCircle className="text-orange-500" size={20} />
-                    主要问题
-                </h3>
-                <ul className="space-y-2">
-                    {result.problems.map((problem, idx) => (
-                        <li key={idx} className="flex items-start gap-2 text-gray-700 text-sm">
-                            <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-orange-400 flex-shrink-0"></span>
-                            {problem}
-                        </li>
-                    ))}
-                </ul>
+      {/* Phone Mockup */}
+      <div className="relative w-full max-w-[420px] bg-white rounded-[3rem] shadow-2xl border-8 border-gray-900 overflow-hidden aspect-[9/19.5]">
+        {/* Notch */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-7 bg-gray-900 rounded-b-2xl z-20"></div>
+
+        {/* Status Bar Area (Mock) */}
+        <div className="h-12 bg-white w-full"></div>
+
+        {/* App Header */}
+        <div className="flex items-center justify-between px-4 py-2 bg-white sticky top-0 z-10">
+          <ArrowLeft size={24} className="text-gray-800" />
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-yellow-200 to-pink-200 p-[1px]">
+               <div className="w-full h-full rounded-full bg-white flex items-center justify-center overflow-hidden">
+                 <span className="text-xs">🍠</span>
+               </div>
             </div>
-
-            {/* Optimization Suggestions */}
-            <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
-                <h3 className="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
-                    <Check className="text-brand-primary" size={20} />
-                    优化建议
-                </h3>
-                <div className="space-y-6">
-                    {result.suggestions.map((suggestion, idx) => (
-                        <div key={idx} className="border-b border-gray-100 last:border-0 pb-6 last:pb-0">
-                            <div className="flex items-center gap-2 mb-3">
-                                <span className="bg-brand-light text-brand-primary px-2 py-0.5 rounded text-xs font-semibold">
-                                    {suggestion.type === 'title' ? '标题' : 
-                                     suggestion.type === 'opening' ? '开篇' : 
-                                     suggestion.type === 'structure' ? '结构' : '互动'}
-                                </span>
-                                {suggestion.priority === 'high' && (
-                                    <span className="text-xs text-red-500 font-medium">✨ 强烈推荐</span>
-                                )}
-                            </div>
-                            
-                            {/* Compare Original vs Optimized if available */}
-                            {suggestion.original && suggestion.optimized && (
-                                <div className="space-y-3 bg-gray-50 rounded-xl p-4 mb-3">
-                                    <div>
-                                        <p className="text-xs text-gray-400 mb-1">❌ 原文</p>
-                                        <p className="text-sm text-gray-600 line-through decoration-gray-400">{suggestion.original}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-brand-primary mb-1">✅ 建议改写</p>
-                                        <ul className="space-y-2">
-                                            {suggestion.optimized.map((opt, i) => (
-                                                <li key={i} className="text-sm text-gray-900 font-medium bg-white p-2 rounded border border-gray-100 shadow-sm">
-                                                    {opt}
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                </div>
-                            )}
-
-                            {suggestion.suggestion && (
-                                <p className="text-sm font-medium text-gray-800 bg-gray-50 p-3 rounded-lg border-l-4 border-brand-primary mb-2">
-                                    {suggestion.suggestion}
-                                </p>
-                            )}
-
-                            <p className="text-xs text-gray-500 flex items-center gap-1">
-                                💡 <span className="italic">{suggestion.reason}</span>
-                            </p>
-                        </div>
-                    ))}
-                </div>
-            </div>
+            <span className="text-sm font-semibold text-gray-700">我的小红书</span>
+            <button className="text-xs text-brand-primary border border-brand-primary px-3 py-1 rounded-full font-medium">
+              关注
+            </button>
+          </div>
+          <Share2 size={24} className="text-gray-800" />
         </div>
 
-        {/* Full Optimized Text Column */}
-        <div className="lg:col-span-1">
-            <div className="bg-white rounded-3xl shadow-lg border-2 border-brand-light overflow-hidden sticky top-6">
-                <div className="bg-brand-light/30 px-6 py-4 flex items-center justify-between">
-                    <h3 className="font-bold text-gray-800">📝 完整优化版</h3>
-                    <button
-                        onClick={() => handleCopy(result.optimizedFullText, setCopiedText)}
-                        className={`flex items-center gap-1 text-xs px-3 py-1.5 rounded-full transition-all ${
-                            copiedText ? 'bg-green-100 text-green-600' : 'bg-brand-primary text-white hover:bg-brand-dark'
-                        }`}
-                    >
-                        {copiedText ? <Check size={12} /> : <Copy size={12} />}
-                        {copiedText ? '已复制' : '复制全文'}
-                    </button>
-                </div>
-                
-                <div className="p-6 max-h-[600px] overflow-y-auto custom-scrollbar">
-                    <pre className="whitespace-pre-wrap font-sans text-sm text-gray-700 leading-relaxed">
-                        {result.optimizedFullText}
-                    </pre>
-                </div>
-
-                {/* Hashtags Section */}
-                {result.hashtags && result.hashtags.length > 0 && (
-                    <div className="border-t border-gray-100 px-6 py-4 bg-gray-50">
-                        <div className="flex justify-between items-center mb-2">
-                            <span className="text-xs font-semibold text-gray-500">推荐标签</span>
-                            <button
-                                onClick={() => handleCopy(result.hashtags.join(' '), setCopiedTags)}
-                                className="text-brand-primary text-xs hover:underline"
-                            >
-                                {copiedTags ? '已复制' : '复制标签'}
-                            </button>
+        {/* Content Area - Scrollable */}
+        <div className="h-[calc(100%-140px)] overflow-y-auto no-scrollbar bg-white">
+            {/* Image Carousel */}
+            <div className="w-full aspect-[3/4] bg-gray-50 relative group">
+                {inputData.images && inputData.images.length > 0 ? (
+                    <img 
+                        src={inputData.images[0].preview} 
+                        alt="Product" 
+                        className="w-full h-full object-cover"
+                    />
+                ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center text-gray-300">
+                        <div className="w-20 h-20 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center mb-4">
+                            <span className="text-4xl">📷</span>
                         </div>
-                        <div className="flex flex-wrap gap-2">
-                            {result.hashtags.map((tag, idx) => (
-                                <span key={idx} className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
-                                    {tag}
-                                </span>
-                            ))}
-                        </div>
+                        <p className="font-medium">No Image</p>
+                    </div>
+                )}
+                {/* Dots indicator */}
+                {inputData.images.length > 1 && (
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5">
+                        {inputData.images.map((_, i) => (
+                            <div key={i} className={`w-1.5 h-1.5 rounded-full ${i === 0 ? 'bg-white' : 'bg-white/50'}`}></div>
+                        ))}
                     </div>
                 )}
             </div>
-            
-            <button 
-                onClick={onReset}
-                className="w-full mt-6 py-3 bg-white border border-brand-primary text-brand-primary rounded-full font-bold shadow-sm hover:bg-brand-light transition-colors flex items-center justify-center gap-2"
-            >
-                <RefreshCw size={18} />
-                再诊断一篇
-            </button>
+
+            {/* Note Content */}
+            <div className="p-4 pb-20">
+                <h1 className="text-lg font-bold text-gray-900 leading-snug mb-3">
+                    {currentContent.title}
+                </h1>
+                <div className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap space-y-4">
+                    {currentContent.content}
+                </div>
+                <div className="mt-4 flex flex-wrap gap-2">
+                    {currentContent.tags.map((tag, i) => (
+                        <span key={i} className="text-blue-600 text-sm">
+                            {tag}
+                        </span>
+                    ))}
+                </div>
+                <div className="mt-6 text-xs text-gray-400">
+                    发布于 上海
+                </div>
+            </div>
         </div>
+
+        {/* Bottom Actions */}
+        <div className="absolute bottom-0 left-0 w-full bg-white border-t border-gray-100 px-4 py-3 flex items-center justify-between z-10 rounded-b-[2.5rem]">
+            <div className="flex items-center gap-1 bg-gray-100 px-4 py-2 rounded-full text-gray-400 text-sm flex-1 mr-4">
+                <span className="text-gray-400">说点什么...</span>
+            </div>
+            <div className="flex items-center gap-5 text-gray-700">
+                <div className="flex flex-col items-center">
+                    <Heart size={24} />
+                    <span className="text-[10px] mt-0.5">0</span>
+                </div>
+                <div className="flex flex-col items-center">
+                    <Star size={24} />
+                    <span className="text-[10px] mt-0.5">0</span>
+                </div>
+                <div className="flex flex-col items-center">
+                    <MessageCircle size={24} />
+                    <span className="text-[10px] mt-0.5">0</span>
+                </div>
+            </div>
+        </div>
+      </div>
+
+      {/* Action Buttons Below */}
+      <div className="w-full max-w-[420px] mt-8 space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+              <button 
+                  onClick={() => handleCopy(currentContent.title, 'title')}
+                  className="flex items-center justify-center gap-2 bg-white border border-gray-200 py-3 rounded-xl font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                  {copiedField === 'title' ? <Check size={18} className="text-green-500"/> : <Copy size={18} />}
+                  {copiedField === 'title' ? '已复制' : '复制标题'}
+              </button>
+              <button 
+                  onClick={() => handleCopy(`${currentContent.content}\n${currentContent.tags.join(' ')}`, 'content')}
+                  className="flex items-center justify-center gap-2 bg-white border border-gray-200 py-3 rounded-xl font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                  {copiedField === 'content' ? <Check size={18} className="text-green-500"/> : <Copy size={18} />}
+                  {copiedField === 'content' ? '已复制' : '复制正文'}
+              </button>
+          </div>
+          <button 
+              onClick={handleCopyAll}
+              className={`w-full py-4 rounded-xl font-bold text-white text-lg flex items-center justify-center gap-2 transition-all shadow-lg ${
+                copiedField === 'all' ? 'bg-green-600' : 'bg-gray-900 hover:bg-black'
+              }`}
+          >
+              {copiedField === 'all' ? (
+                  <>
+                    <Check size={20} />
+                    <span>复制成功</span>
+                  </>
+              ) : (
+                  <>
+                    <Copy size={20} />
+                    <span>一键复制全部</span>
+                  </>
+              )}
+          </button>
       </div>
     </div>
   );

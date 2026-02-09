@@ -1,42 +1,27 @@
-export enum Purpose {
-  GROWTH = '涨粉引流',
-  CONVERSION = '商品转化',
-  IP_BUILDING = '打造个人IP'
-}
-
-export interface SuggestionItem {
-  type: string;
-  priority: 'high' | 'medium' | 'low';
-  original?: string;
-  optimized?: string[];
-  suggestion?: string;
-  reason: string;
-}
-
-export interface ScoreBreakdown {
-  title: number;
-  opening: number;
-  structure: number;
-  engagement: number;
-}
-
-export interface AnalysisResult {
-  score: number;
-  scoreBreakdown: ScoreBreakdown;
-  problems: string[];
-  suggestions: SuggestionItem[];
-  optimizedFullText: string;
-  hashtags: string[];
-}
-
-export interface InputData {
+export interface NoteContent {
   title: string;
   content: string;
-  purpose: Purpose;
+  tags: string[];
 }
 
-export interface HistoryItem extends InputData {
+export interface GenerationResult {
+  planA: NoteContent;
+  planB: NoteContent;
+}
+
+export interface FormData {
+  brandContext: string;
+  images: { file: File; preview: string }[];
+  goal: string;
+  tone: string;
+  hasDraft: boolean;
+  draftContent: string;
+  extraPoints: string;
+}
+
+export interface HistoryItem {
   id: string;
   timestamp: number;
-  result: AnalysisResult;
+  data: FormData;
+  result: GenerationResult;
 }
